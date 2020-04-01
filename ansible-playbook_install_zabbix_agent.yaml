@@ -2,7 +2,8 @@
   remote_user: root
   tasks:
 
-  - command: lsb_release -i -s
+
+- command: lsb_release -i -s
 #区分不同操作系统,以下系统默认为redhat 8，centos 7与ubuntu 1804，需根据实际情况调整脚本
     register: remote_os
 
