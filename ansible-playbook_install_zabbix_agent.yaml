@@ -1,0 +1,51 @@
+- hosts: ALL-Server
+  remote_user: root
+  tasks:
+
+  - command: lsb_release -i -s
+#区分不同操作系统,以下系统默认为redhat 8，centos 7与ubuntu 1804，需根据实际情况调整脚本
+    register: remote_os
+
+#传输zabbix-agent安装包
+  - name:  Redhat system copy zabbix-agent rpm
+    copy: src=/tmp/zabbix_agent-4.0.17-2.el7.x86_64.rpm dest=/tmp/zabbix_agent-4.0.17-2.el7.x86_64.rpm
+    when: remote_os.stdout == 'Redhat'
+
+  - name:  CentOS system copy zabbix-agent rpm
+    copy: src=/tmp/zabbix_agent-4.0.17-2.el7.x86_64.rpm dest=/tmp/zabbix_agent-4.0.17-2.el7.x86_64.rpm
+    when: remote_os.stdout == 'CentOS'
+
+  - name:  Ubuntu system copy zabbix-agent deb
+    copy: src=/tmp/zabbix-agent_1:2.4.7+dfsg-2ubuntu2.1_amd64.deb dest=/tmp/zabbix-agent_1%3a2.4.7+dfsg-2ubuntu2.1_amd64.deb
+    when: remote_os.stdout == 'Ubuntu'
+
+
+#安装
+  - name: Redhat install zabbix-agent
+    shell: cd /tmp  ;  dnf -y localinstall zabbix_agent-4.0.17-2.el7.x86_64.rpm ; rm -rf zabbix_agent-4.0.17-2.el7.x86_64.rpm
+    when: remote_os.stdout == 'Redhat'
+
+  - name: yum install zabbix-agent and rm zabbix-agent
+    shell: cd /tmp ; yum -y localinstall zabbix_agent-4.0.17-2.el7.x86_64.rpm ; rm -rf zabbix_agent-4.0.17-2.el7.x86_64.rpm
+    when: remote_os.stdout == 'CentOS'
+
+  - name: dpkg install zabbix-agent and rm zabbix-agent
+    shell: cd /tmp ; dpkg -i zabbix-agent_1:2.4.7+dfsg-2ubuntu2.1_amd64.deb ; rm -rf zabbix-agent_1:2.4.7+dfsg-2ubuntu2.1_amd64.deb
+    when: remote_os.stdout == 'Ubuntu'
+
+
+#配置
+  - name: configure Server IP and ServerActive IP
+    shell: sed -i 's/Server=127.0.0.1/Server={your_server_ip}/' /etc/zabbix/zabbix_agentd.conf  ;  sed -i 's/ServerActive=127.0.0.1/ServerActive={your_server_ip}/' /etc/zabbix/zabbix_agentd.conf
+
+  - name: configure HostMetadata
+    shell: sed -i 's/# HostMetadata=/HostMetadata=qas/' /etc/zabbix/zabbix_agentd.conf
+ 
+  - name: system configure Hostname
+    shell: host=`ifconfig |awk -F '[ :]+' 'NR==2 {print $3}'`;sed -i 's/Hostname=Zabbix server/Hostname='$host'/' /etc/zabbix/zabbix_agentd.conf
+    
+ 
+ #启动
+  - name:  system start zabbix
+    shell: systemctl enable zabbix-agent.service;systemctl start zabbix-agent.service
+  
