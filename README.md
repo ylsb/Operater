@@ -23,7 +23,7 @@
     
 3，监控平台（zabbix，prometheus+grafana） 监控服务器与各种服务的性能
 
-    在ansible-server管理节点上，安装好zabbix-server后，通过执行ansible脚本，给所有服务器安装并配置zabbix-agent
+    在ansible-server管理节点上，安装好zabbix-server后，通过ansible执行ansible-playbook_install_zabbix_agent.yaml脚本，给所有服务器安装并配置zabbix-agent
     通过ansible给相应服务器配置相应的zabbix监控key，如配置好客户端的zabbix-monitor-nginx.sh后，在zabbix-server的配置页面加入相应nginx监控key即可
     
 4，内部资源仓库，如dockerhub（harbor），github（gogs）和包管理仓库等
@@ -36,7 +36,8 @@
 
 6，持续集成和发布工具
 
-    主要使用jenkins来实现
+    主要使用jenkins来实现，最好搭配k8s+docker，实现docker镜像版本即相应服务的版本，方便后续回滚
+    参考jenkins-build.sh与jenkins-k8s-deploy.sh
 
 7，安全漏洞扫描工具
 
